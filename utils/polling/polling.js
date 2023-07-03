@@ -3,14 +3,18 @@ import { getUser } from "../user/saveUser.js";
 import { loginUser } from "../../core/index.js";
 import { formatAndSendStoreData } from "../../bot/helpers/formatAndSendStoreData.js";
 
-export const pollForStore = (bot) => async () => {
+export const getPollingData = async () => {
   const getPollingData = await client.get("POLLING");
 
   if (!getPollingData) {
-    return;
+    return [];
   }
 
-  const pollingData = JSON.parse(getPollingData);
+  return JSON.parse(getPollingData);
+};
+
+export const pollForStore = (bot) => async () => {
+  const pollingData = await getPollingData();
 
   for (const { tgId, playerId } of pollingData) {
     const users = await getUser(tgId);

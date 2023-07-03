@@ -3,9 +3,8 @@ import {
   handleExceptionInvalidCredentials,
   handleSuccessRegistration,
 } from "../handlers.js";
-import { getTodayStore, loginUser } from "../../core/index.js";
+import { loginUser } from "../../core/index.js";
 import { saveUser } from "../../utils/user/saveUser.js";
-import { formatStoreMessages } from "../formatter.js";
 import { formatAndSendStoreData } from "../helpers/formatAndSendStoreData.js";
 import { registerPolling } from "../../utils/polling/polling.js";
 

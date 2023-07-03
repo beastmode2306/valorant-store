@@ -29,7 +29,22 @@ const buildCommand = (images, tgId, playerId) => {
     )
     .join(";");
 
-  const filterComplexChunk = `-filter_complex "${filterComplexImages};color=c=0x1e1e2e:s=1200x300[bg];[bg][left]overlay=shortest=1[top];[top][right]overlay=600:shortest=1[finaltop];[finaltop][bottomleft]overlay=0:150:shortest=1[final];[final][bottomright]overlay=600:150:shortest=1,pad=iw+140:ih+140:70:70:color=0x1e1e2e"`;
+  const horizontalGap = 100;
+  const verticalGap = 50;
+
+  const canvasWidth = 1200 + horizontalGap;
+  const canvasHeight = 300 + verticalGap;
+  const padding = 70;
+
+  const filterComplexChunk = `-filter_complex "${filterComplexImages};color=c=0x1e1e2e:s=${canvasWidth}x${canvasHeight}[bg];[bg][left]overlay=shortest=1[top];[top][right]overlay=${
+    600 + horizontalGap
+  }:shortest=1[finaltop];[finaltop][bottomleft]overlay=0:${
+    150 + verticalGap
+  }:shortest=1[final];[final][bottomright]overlay=${600 + horizontalGap}:${
+    150 + verticalGap
+  }:shortest=1,pad=${canvasWidth + 2 * padding}:${
+    canvasHeight + 2 * padding
+  }:${padding}:${padding}:color=0x1e1e2e"`;
 
   return {
     command: `ffmpeg ${imagesCommandChunk} ${filterComplexChunk} ${destination}`,

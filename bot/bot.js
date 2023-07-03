@@ -8,7 +8,9 @@ export const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 import { startHandler } from "./commands/start.js";
 import { registerHandler } from "./commands/register.js";
 import { storeHandler } from "./commands/store.js";
+import { adminHandler } from "./commands/admin.js";
 
 bot.onText(/\/start/, startHandler(bot));
 bot.onText(/\/register/, registerHandler(bot));
 bot.onText(/\/store/, storeHandler(bot));
+bot.onText(/\/admin/, adminHandler(bot));

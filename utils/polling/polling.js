@@ -1,7 +1,11 @@
+import Queue from "queue";
 import { client } from "../redis/client.js";
 import { getUser } from "../user/saveUser.js";
 import { loginUser } from "../../core/index.js";
 import { formatAndSendStoreData } from "../../bot/helpers/formatAndSendStoreData.js";
+import { logger } from "../logger.js";
+
+const q = new Queue({ autostart: true, concurrency: 1 });
 
 export const getPollingData = async () => {
   const getPollingData = await client.get("POLLING");
@@ -14,6 +18,7 @@ export const getPollingData = async () => {
 };
 
 export const pollForStore = (bot) => async () => {
+  logger.info("Polling for store data");
   const pollingData = await getPollingData();
 
   for (const { tgId, playerId } of pollingData) {
@@ -24,26 +29,40 @@ export const pollForStore = (bot) => async () => {
     }
 
     for (const user of users) {
-      const { username, password } = user;
+      q.push(async (cb) => {
+        logger.info(
+          `Adding task for user ${user.username} to the queue. Current queue length: ${q.length}.`
+        );
 
-      const { access_token, entitlements_token, playerId } = await loginUser({
-        username,
-        password,
-      });
+        const { username, password } = user;
 
-      await formatAndSendStoreData(
-        {
-          playerId,
-          access_token,
-          entitlements_token,
+        const { access_token, entitlements_token, playerId } = await loginUser({
           username,
-        },
-        bot,
-        tgId
-      );
+          password,
+        });
+
+        await formatAndSendStoreData(
+          {
+            playerId,
+            access_token,
+            entitlements_token,
+            username,
+          },
+          bot,
+          tgId
+        );
+
+        cb();
+
+        logger.info(
+          `Task for user ${user.username} completed. Remaining tasks in the queue: ${q.length}.`
+        );
+      });
     }
   }
 };
+
+// ...rest of your code remains unchanged...
 
 export const registerPolling = async (tgId, playerId) => {
   const getPollingData = await client.get("POLLING");

@@ -2,6 +2,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { fileURLToPath } from "url";
 import * as path from "path";
+import { logger } from "../logger.js";
 
 const buildCommand = (images, tgId, playerId) => {
   const timestamp = Date.now();
@@ -59,7 +60,7 @@ export const generateCollage = (images, tgId, playerId) => {
   return execPromise(command)
     .then(() => destination)
     .catch((error) => {
-      console.error(error);
+      logger.error(error, "Error generating collage");
       throw error;
     });
 };

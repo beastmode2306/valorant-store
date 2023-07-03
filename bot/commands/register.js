@@ -7,6 +7,7 @@ import { loginUser } from "../../core/index.js";
 import { saveUser } from "../../utils/user/saveUser.js";
 import { formatAndSendStoreData } from "../helpers/formatAndSendStoreData.js";
 import { registerPolling } from "../../utils/polling/polling.js";
+import { logger } from "../../utils/logger.js";
 
 export const registerHandler = (bot) => async (msg) => {
   const chatId = msg.chat.id;
@@ -41,6 +42,8 @@ export const registerHandler = (bot) => async (msg) => {
         ...user,
         playerId,
       });
+
+      logger.info(`New user ${username} has registered`);
 
       await registerPolling(chatId, playerId);
 

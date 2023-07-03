@@ -9,6 +9,7 @@ import { startHandler } from "./commands/start.js";
 import { registerHandler } from "./commands/register.js";
 import { storeHandler } from "./commands/store.js";
 import { adminHandler } from "./commands/admin.js";
+import { logger } from "../utils/logger.js";
 
 export const initBot = async () => {
   bot.onText(/\/start/, startHandler(bot));
@@ -16,13 +17,13 @@ export const initBot = async () => {
   bot.onText(/\/store/, storeHandler(bot));
   bot.onText(/\/admin/, adminHandler(bot));
 
-  console.log("Bot has started");
+  logger.info("Bot started!");
 
   return bot;
 };
 
 export const handleErrors = (error) => {
-  console.log("Bot has crashed!", error);
+  logger.error(error, "Bot has crashed!");
   bot.sendMessage(
     process.env.BOT_ADMIN_ID,
     `Bot has crashed! ${JSON.stringify(error, null, 2)}`

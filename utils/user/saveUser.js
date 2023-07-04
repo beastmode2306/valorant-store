@@ -27,16 +27,28 @@ export const saveUser = async (user) => {
   await client.set("USER:" + tgId, JSON.stringify(existingConnections));
 };
 
-export const getUser = async (tgId) => {
+export const getUsers = async (tgId, playerId = null) => {
   const users = await client.get("USER:" + tgId);
 
   if (!users) return null;
 
   const parsedUsers = JSON.parse(users);
 
-  return parsedUsers.map(({ playerId, username, password }) => ({
+  if (!playerId) {
+    return parsedUsers.map(({ playerId, username, password }) => ({
+      playerId,
+      username,
+      password: decrypt(password, process.env.SECRET),
+    }));
+  }
+
+  const user = parsedUsers.find(({ playerId: id }) => id === playerId);
+
+  if (!user) return null;
+
+  return {
     playerId,
-    username,
-    password: decrypt(password, process.env.SECRET),
-  }));
+    username: user.username,
+    password: decrypt(user.password, process.env.SECRET),
+  };
 };

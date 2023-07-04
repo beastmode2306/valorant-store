@@ -6,8 +6,7 @@ import {
 import { getPlayerStore } from "./services/skins/store.js";
 import { getSkin } from "./services/skins/skins.js";
 
-export const loginUser = async (credentials) => {
-  const { username, password } = credentials;
+export const loginUser = async ({ username, password }) => {
   const { access_token } = await fetchAccessToken(username, password);
   const { entitlements_token } = await fetchEntitlementToken(access_token);
   const playerId = await fetchPlayerId(access_token);
@@ -15,9 +14,11 @@ export const loginUser = async (credentials) => {
   return { access_token, entitlements_token, playerId };
 };
 
-export const getTodayStore = async (credentials) => {
-  const { access_token, entitlements_token, playerId } = credentials;
-
+export const getTodayStore = async ({
+  access_token,
+  entitlements_token,
+  playerId,
+}) => {
   const store = await getPlayerStore({
     playerId,
     accessToken: access_token,

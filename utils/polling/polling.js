@@ -1,9 +1,8 @@
 import Queue from "queue";
 import { client } from "../redis/client.js";
-import { getUser } from "../user/saveUser.js";
-import { loginUser } from "../../core/index.js";
-import { formatAndSendStoreData } from "../../bot/helpers/formatAndSendStoreData.js";
+import { getUsers } from "../user/saveUser.js";
 import { logger } from "../logger.js";
+import { sendUserStore } from "../../bot/helpers/sendUserStore.js";
 
 const q = new Queue({ autostart: true, concurrency: 1 });
 
@@ -22,47 +21,15 @@ export const pollForStore = (bot) => async () => {
   const pollingData = await getPollingData();
 
   for (const { tgId, playerId } of pollingData) {
-    const users = await getUser(tgId);
+    const user = await getUsers(tgId, playerId);
 
-    if (!users) {
+    if (!user) {
       continue;
     }
 
-    for (const user of users) {
-      q.push(async (cb) => {
-        logger.info(
-          `Adding task for user ${user.username} to the queue. Current queue length: ${q.length}.`
-        );
-
-        const { username, password } = user;
-
-        const { access_token, entitlements_token, playerId } = await loginUser({
-          username,
-          password,
-        });
-
-        await formatAndSendStoreData(
-          {
-            playerId,
-            access_token,
-            entitlements_token,
-            username,
-          },
-          bot,
-          tgId
-        );
-
-        cb();
-
-        logger.info(
-          `Task for user ${user.username} completed. Remaining tasks in the queue: ${q.length}.`
-        );
-      });
-    }
+    sendUserStore({ user, tokens: null }, bot, tgId);
   }
 };
-
-// ...rest of your code remains unchanged...
 
 export const registerPolling = async (tgId, playerId) => {
   const getPollingData = await client.get("POLLING");
@@ -75,7 +42,9 @@ export const registerPolling = async (tgId, playerId) => {
 
   const pollingData = JSON.parse(getPollingData);
 
-  const isAlreadyRegistered = pollingData.some((data) => data.tgId === tgId);
+  const isAlreadyRegistered = pollingData.some(
+    (data) => data.tgId === tgId && data.playerId === playerId
+  );
 
   if (isAlreadyRegistered) {
     return;

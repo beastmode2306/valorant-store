@@ -5,9 +5,9 @@ import {
 } from "../handlers.js";
 import { loginUser } from "../../core/index.js";
 import { saveUser } from "../../utils/user/saveUser.js";
-import { formatAndSendStoreData } from "../helpers/formatAndSendStoreData.js";
 import { registerPolling } from "../../utils/polling/polling.js";
 import { logger } from "../../utils/logger.js";
+import { sendUserStore } from "../helpers/sendUserStore.js";
 
 export const registerHandler = (bot) => async (msg) => {
   const chatId = msg.chat.id;
@@ -38,6 +38,12 @@ export const registerHandler = (bot) => async (msg) => {
         password,
       });
 
+      logger.debug({
+        access_token,
+        entitlements_token,
+        playerId,
+      });
+
       await saveUser({
         ...user,
         playerId,
@@ -49,12 +55,8 @@ export const registerHandler = (bot) => async (msg) => {
 
       await handleSuccessRegistration(bot, chatId, playerId);
 
-      await formatAndSendStoreData(
-        {
-          playerId,
-          access_token,
-          entitlements_token,
-        },
+      sendUserStore(
+        { user, tokens: { access_token, entitlements_token, playerId } },
         bot,
         chatId
       );

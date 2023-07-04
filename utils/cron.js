@@ -3,7 +3,13 @@ import moment from "moment";
 import cronParser from "cron-parser";
 import { logger } from "./logger.js";
 
-const cronExpression = "0 2 * * *";
+export const pollCronExpression = "0 2 * * *";
+
+// each 2 minutes
+// export const pollCronExpression = "*/1 * * * *";
+
+export const getCronInterval = () =>
+  cronParser.parseExpression(pollCronExpression);
 
 export const initCron = (cb) => {
   logger.info(
@@ -11,7 +17,7 @@ export const initCron = (cb) => {
     ...getCronTime()
   );
 
-  return cron.schedule(cronExpression, cb);
+  return cron.schedule(pollCronExpression, cb);
 };
 
 const formatTime = (hours, mins, secs) => {
@@ -21,9 +27,7 @@ const formatTime = (hours, mins, secs) => {
 };
 
 export const getCronTime = () => {
-  let interval = cronParser.parseExpression(cronExpression);
-
-  const nextDate = interval.next().toDate();
+  const nextDate = getCronInterval().next().toDate();
   const now = new Date();
 
   const diffDuration = moment.duration(moment(nextDate).diff(moment(now)));

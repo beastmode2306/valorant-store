@@ -1,9 +1,32 @@
 import axios from "axios";
 
-const getPlayerStore = async (credentials) => {
-  const { data } = await getPlayerStorefront(credentials);
+import { client } from "../../../utils/redis/client.js";
+import { getCronInterval } from "../../../utils/cron.js";
+import { logger } from "../../../utils/logger.js";
 
-  return data;
+const storeUpdateTime = getCronInterval().next().toDate();
+
+const calculateTTL = () => {
+  const now = new Date();
+  const diff = storeUpdateTime - now;
+
+  return Math.floor(diff / 1000);
+};
+
+const getPlayerStore = async (credentials) => {
+  let store = await client.get("STORE:" + credentials.playerId);
+
+  if (!store) {
+    logger.info("Store not found in cache. Fetching from API.");
+    const { data } = await getPlayerStorefront(credentials);
+    await client.set("STORE:" + credentials.playerId, JSON.stringify(data), {
+      EX: calculateTTL(),
+    });
+
+    store = data;
+  }
+
+  return typeof store === "string" ? JSON.parse(store) : store;
 };
 
 const getPlayerStorefront = (credentials) => {

@@ -1,4 +1,4 @@
-import { getTodayStore, loginUser } from "../../core/index.js";
+import { getTodayStore } from "../../core/index.js";
 import { formatStoreMessages } from "../formatter.js";
 import { generateCollage } from "../../utils/ffmpeg/engine.js";
 import { getPlayerWallet } from "../../core/services/skins/store.js";

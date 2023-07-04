@@ -1,6 +1,8 @@
 import querystring from "querystring";
 import { endpoints } from "../../../config/index.js";
 import { getAxiosInstance } from "./client.js";
+import { getClientVersion } from "../client/riotVerison.js";
+import { logger } from "../../../utils/logger.js";
 
 const axios = getAxiosInstance();
 
@@ -13,7 +15,15 @@ const _reqCookie = async (url) => {
     scope: "account openid",
   };
 
-  const req = await axios.post(url, body);
+  const { riotClientBuild } = await getClientVersion();
+
+  const headers = {
+    "User-Agent": `RiotClient/${riotClientBuild} rso-auth (Windows; 10;; Professional, x64)`,
+  };
+
+  const req = await axios.post(url, body, {
+    headers,
+  });
 
   return req?.headers["set-cookie"]?.join("; ");
 };
@@ -32,11 +42,14 @@ const _reqAccessToken = (url, headers, credentials) => {
 };
 
 const fetchPlayerId = async (accessToken) => {
-  const url = `${endpoints.accessToken}/userinfo`;
+  const { riotClientBuild } = await getClientVersion();
 
   const headers = {
+    "User-Agent": `RiotClient/${riotClientBuild} rso-auth (Windows; 10;; Professional, x64)`,
     Authorization: `Bearer ${accessToken}`,
   };
+
+  const url = `${endpoints.accessToken}/userinfo`;
 
   const { data } = await axios.get(url, { headers });
 
@@ -44,11 +57,14 @@ const fetchPlayerId = async (accessToken) => {
 };
 
 const fetchEntitlementToken = async (accessToken) => {
-  const url = `${endpoints.entitlementsToken}/api/token/v1`;
+  const { riotClientBuild } = await getClientVersion();
 
   const headers = {
+    "User-Agent": `RiotClient/${riotClientBuild} rso-auth (Windows; 10;; Professional, x64)`,
     Authorization: `Bearer ${accessToken}`,
   };
+
+  const url = `${endpoints.entitlementsToken}/api/token/v1`;
 
   const { data } = await axios.post(url, {}, { headers });
 
@@ -56,6 +72,16 @@ const fetchEntitlementToken = async (accessToken) => {
 };
 
 const fetchAccessToken = async (username, password) => {
+  const { riotClientBuild } = await getClientVersion();
+
+  const headers = {
+    "User-Agent": `RiotClient/${riotClientBuild} rso-auth (Windows; 10;; Professional, x64)`,
+  };
+
+  logger.debug(
+    `RiotClient/${riotClientBuild} rso-auth (Windows; 10;; Professional, x64)`
+  );
+
   const url = `${endpoints.accessToken}/api/v1/authorization`;
 
   const cookies = await _reqCookie(url);
@@ -68,6 +94,7 @@ const fetchAccessToken = async (username, password) => {
     url,
     {
       cookie: cookies,
+      ...headers,
     },
     { username, password }
   );

@@ -1,9 +1,8 @@
-import { getUser } from "../../utils/user/saveUser.js";
-import { formatAndSendStoreData } from "../helpers/formatAndSendStoreData.js";
-import { loginUser } from "../../core/index.js";
+import { getUsers } from "../../utils/user/saveUser.js";
+import { sendUserStore } from "../helpers/sendUserStore.js";
 
 export const storeHandler = (bot) => async (msg) => {
-  const users = await getUser(msg.chat.id);
+  const users = await getUsers(msg.chat.id);
 
   if (!users) {
     bot.sendMessage(
@@ -15,22 +14,6 @@ export const storeHandler = (bot) => async (msg) => {
   }
 
   for (const user of users) {
-    const { username, password } = user;
-
-    const { access_token, entitlements_token, playerId } = await loginUser({
-      username,
-      password,
-    });
-
-    await formatAndSendStoreData(
-      {
-        playerId,
-        access_token,
-        entitlements_token,
-        username,
-      },
-      bot,
-      msg.chat.id
-    );
+    sendUserStore({ user, tokens: null }, bot, msg.chat.id);
   }
 };
